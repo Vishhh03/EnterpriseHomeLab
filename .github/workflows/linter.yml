@@ -32,6 +32,9 @@ jobs:
       - name: Install Ansible Lint
         run: pip install ansible-lint
         
+      - name: Install Ansible Galaxy Collections
+        run: ansible-galaxy collection install community.docker
+        
       - name: Run Ansible Lint
         run: ansible-lint ./ansible/site.yml
 
