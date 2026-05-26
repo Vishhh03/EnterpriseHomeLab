@@ -2,9 +2,9 @@ name: Infrastructure Code Linter
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 jobs:
   lint-bash:
@@ -16,7 +16,7 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: './baremetal-homelab'
+          scandir: './'
 
   lint-ansible:
     name: Lint Ansible Playbooks
@@ -33,7 +33,7 @@ jobs:
         run: pip install ansible-lint
         
       - name: Run Ansible Lint
-        run: ansible-lint ./baremetal-homelab/ansible/site.yml
+        run: ansible-lint ./ansible/site.yml
 
   lint-python:
     name: Lint Python Tooling
@@ -50,4 +50,4 @@ jobs:
         run: pip install flake8
         
       - name: Run Flake8
-        run: flake8 ./baremetal-homelab/tools/fleet_health.py --max-line-length=120
+        run: flake8 ./tools/fleet_health.py --max-line-length=120
