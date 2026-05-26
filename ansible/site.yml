@@ -1,0 +1,35 @@
+---
+- name: Fleet Configuration Management and State Enforcement
+  hosts: fleet_nodes
+  become: yes
+  tasks:
+
+    - name: Ensure Fleet Hardware Telemetry Service is running
+      ansible.builtin.systemd:
+        name: hardware-telemetry.service
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Ensure necessary Python packages for Docker orchestration are installed
+      ansible.builtin.apt:
+        name: 
+          - python3-docker
+          - python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Deploy Core Infrastructure Stack via Docker Compose
+      community.docker.docker_compose:
+        project_src: /opt/baremetal-homelab/docker
+        state: present
+      register: compose_output
+
+    - name: Verify Nginx Reverse Proxy syntax is valid
+      ansible.builtin.command: nginx -t -c /opt/baremetal-homelab/nginx/homelab-proxy.conf
+      register: nginx_test
+      changed_when: false
+
+    - name: Log configuration enforcement state
+      ansible.builtin.debug:
+        msg: "Fleet Configuration Successfully Enforced. Compose State: {{ compose_output.changed }}"

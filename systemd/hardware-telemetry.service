@@ -1,0 +1,23 @@
+[Unit]
+Description=Bare-Metal Hardware Telemetry Collection Agent
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/bin/bash /opt/baremetal-homelab/systemd/hardware-telemetry.sh
+Restart=always
+RestartSec=5
+
+# Hardening
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hardware-telemetry
+
+[Install]
+WantedBy=multi-user.target

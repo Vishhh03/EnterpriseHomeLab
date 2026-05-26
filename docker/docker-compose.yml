@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: homelab-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    networks:
+      - homelab_net
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: homelab-node-exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.textfile.directory=/var/lib/prometheus/node-exporter'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+      - '/var/lib/prometheus/node-exporter:/var/lib/prometheus/node-exporter:ro'
+    networks:
+      - homelab_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: homelab-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=homelab_secure_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - homelab_net
+
+  pihole:
+    image: pihole/pihole:latest
+    container_name: homelab-pihole
+    environment:
+      TZ: 'America/New_York' # Change to your timezone
+      WEBPASSWORD: 'homelab_secure_password'
+    volumes:
+      - './pihole/etc-pihole:/etc/pihole'
+      - './pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80" # Maps pihole web interface to 8080 so Nginx can use 80
+    restart: unless-stopped
+    networks:
+      - homelab_net
+
+  nginx_proxy:
+    image: nginx:alpine
+    container_name: homelab-ingress-proxy
+    volumes:
+      - ../nginx/homelab-proxy.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - homelab_net
+
+networks:
+  homelab_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
+
+volumes:
+  prometheus_data:
+  grafana_data:
