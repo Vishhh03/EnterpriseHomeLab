@@ -20,7 +20,7 @@
         update_cache: yes
 
     - name: Deploy Core Infrastructure Stack via Docker Compose
-      community.docker.docker_compose:
+      community.docker.docker_compose_v2:
         project_src: /opt/baremetal-homelab/docker
         state: present
       register: compose_output
